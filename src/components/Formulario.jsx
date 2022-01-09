@@ -4,6 +4,8 @@ import styled from "@emotion/styled";
 import useSelectMonedas from "../hooks/useSelectMonedas";
 import { monedas } from "../data/monedas";
 
+import Error from './Error'
+
 const InputSubmit = styled.input`
   background-color: #9497ff;
   border: none;
@@ -23,15 +25,19 @@ const InputSubmit = styled.input`
   }
 `;
 
-const Formulario = () => {
+const Formulario = ( { setMonedas } ) => {
+  
+  const [criptos, setCriptos] = useState([])
+  const [error, setError] = useState(false)
 
-      const [criptos, setCriptos] = useState([])
-
+  const [moneda, SelectMonedas] = useSelectMonedas("Elige la moneda", monedas);
+  const [criptomoneda, SelectCripto] = useSelectMonedas("Elige tu criptomoneda", criptos);
+  
   useEffect(() => {
     const consultarAPI = async () => {
       // console.log("Consultando la API");
       const url =
-        await "https://min-api.cryptocompare.com/data/top/mktcapfull?limit=10&tsym=USD";
+        await "https://min-api.cryptocompare.com/data/top/mktcapfull?limit=20&tsym=USD";
       const respuesta = await fetch(url);
       const resultado = await respuesta.json();
 
@@ -50,17 +56,36 @@ const Formulario = () => {
     consultarAPI();
   }, []);
 
-  const [moneda, SelectMonedas] = useSelectMonedas("Elige la moneda", monedas);
+      const handleSubmit = (e) =>{
+        e.preventDefault();
+        
+        if([moneda, criptomoneda].includes('')){
+          setError(true)
+          return
+        }
+        setError(false)
+        setMonedas({
+          moneda,
+          criptomoneda,
+        })
 
+
+
+      }
+  
   return (
     <div>
-      <form action="">
+      {
+        error && (<Error msjErr="Todos los campos son obligatorios"/>)
+      }
+      <form 
+        onSubmit={handleSubmit}
+      >
         <SelectMonedas />
-
+        <SelectCripto />
         <InputSubmit
-          type="text"
-          placeholder="Para texto"
-          //   value='Cotizar'
+          type="submit"
+          value="Cotizar"
         />
       </form>
     </div>

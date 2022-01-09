@@ -1,8 +1,11 @@
+import { useEffect, useState } from 'react';
 
 import styled from '@emotion/styled'
 
 import ImagenCriptos from './img/imagen-criptos.png'
 import Formulario from "./components/Formulario"
+import Resultado from './components/Resultado';
+import Spinner from './components/Spinner';
 
 const Contenedor = styled.div`
   max-width: 900px;
@@ -15,10 +18,11 @@ const Contenedor = styled.div`
   }
 `
 const Imagen = styled.img`
+  margin: 100px auto 0 auto;
   max-width: 400px;
   width: 80%;
-  margin: 100px, auto 0 auto;
   display: block;
+
 
 `
 const Heading = styled.h1`
@@ -44,21 +48,27 @@ const Heading = styled.h1`
 
 const App = () => {
 
-/*   const consultarAPI = () => {
-    const url = 'https://jsonplaceholder.typicode.com/comments'
-    
-    fetch(url)
-    .then( response => response.json())
-    .then( json => json.forEach(comentario => console.log(comentario)))
-  }
-
-  const consultarAPI2 = async () => {
-    const url = 'https://jsonplaceholder.typicode.com/comments'
-
-     const response = await fetch(url)
-     const resultado = await response.json()
-     resultado.forEach( comentario => console.log(comentario))
-  } */
+  const [monedas, setMonedas] = useState({})
+  const [resultado, setResultado] = useState({})
+  const [cargando, setCargando] = useState(false)
+  
+  useEffect(()=>{
+    if(Object.keys(monedas).length > 0){
+      // console.log(monedas);
+      const cotizarCripto = async () => {
+        setCargando(true)
+        setResultado({})
+        const {moneda, criptomoneda} = monedas
+        const url = `https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${criptomoneda}&tsyms=${moneda}`
+        const respuesta = await fetch(url);
+        const resultado = await respuesta.json();
+        setResultado(resultado.DISPLAY[criptomoneda][moneda]);
+        setCargando(false)
+        
+      }
+      cotizarCripto()
+    }
+  }, [monedas])
   
   return (
     <Contenedor>
@@ -69,7 +79,15 @@ const App = () => {
 
       <div>
         <Heading>Cotiza Criptomonedas al Instante</Heading>
-        <Formulario />     
+        <Formulario 
+          setMonedas={setMonedas}
+        />
+        {
+          cargando && <Spinner />
+        } 
+        {
+          resultado && resultado.PRICE && <Resultado resultado={resultado}/>
+        }    
       </div>
 
 
